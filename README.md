@@ -202,4 +202,6 @@ https://github.com/fresearchgroup/Community-Recommendation
 
 	      python3 manage.py runserver  
 
-
+ mysql -u root -p  (and select the database that is created and run the following sql query)
+ 
+ ALTER TABLE BasicArticle_articles MODIFY COLUMN body text CHARACTER SET utf8 COLLATE utf8_general_ci NULL;
