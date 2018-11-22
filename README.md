@@ -187,6 +187,36 @@ This system is used to recommend articles based on his/her activity in the sytem
 https://github.com/fresearchgroup/Community-Recommendation
 
 
+### Etherpad
+
+
+6.  Clone the following directory:
+
+			git clone http://github.com/dhanushsr/etherpad-lite
+			cd etherpad-lite/
+			./bin/run.sh
+
+7. Install PyEtherpadLite--
+
+			git clone http://github.com/dhanushsr/PyEtherpadLite
+			cd PyEtherpadLite
+			python setup.py install
+			cd ..
+
+8. Paste the apikey from APIKEY.text from etherpad-lite folder in the .env.example file
+
+9. Create a .env inside CollaborationSystem and paste the following -
+			
+			sudo cp .env.example .env
+
+9. Do all the migrations going back to django directory--
+
+	      python3 manage.py migrate
+
+10. Runserver --
+
+	      python3 manage.py runserver  
+
  mysql -u root -p  (and select the database that is created and run the following sql query)
  
  ALTER TABLE BasicArticle_articles MODIFY COLUMN body text CHARACTER SET utf8 COLLATE utf8_general_ci NULL;
