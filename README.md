@@ -186,3 +186,7 @@ https://github.com/fresearchgroup/Community-Content-Tools
 This system is used to recommend articles based on his/her activity in the sytem. Please refer to the installation steps given in the repository below:
 https://github.com/fresearchgroup/Community-Recommendation
 
+
+ mysql -u root -p  (and select the database that is created and run the following sql query)
+ 
+ ALTER TABLE BasicArticle_articles MODIFY COLUMN body text CHARACTER SET utf8 COLLATE utf8_general_ci NULL;
