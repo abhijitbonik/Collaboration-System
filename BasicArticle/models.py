@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 from workflow.models import States
 import os, uuid
 from django.conf import settings
+from taggit.managers import TaggableManager
+from workflow.views import get_initial_state
+from metadata.models import Metadata
 
 def get_file_path(instance, filename):
     ext = filename.split('.')[-1]
@@ -19,6 +22,12 @@ class Articles(models.Model):
 	published_by=models.ForeignKey(User,null=True,related_name='article_publisher')
 	views = models.PositiveIntegerField(default=0)
 	state = models.ForeignKey(States, null=True,related_name='articleworkflow')
+	tags = TaggableManager()
+	metadata = models.ForeignKey(Metadata, null=True,related_name='article_metadata')
+
+	def get_absolute_url(self):
+		from django.urls import reverse
+		return reverse('article_view', kwargs={'pk': self.id})
 	
 	def __str__(self):
 		return self.title

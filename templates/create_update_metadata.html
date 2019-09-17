@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+{% load static %}
+{% block css %}
+<link href="{% static 'css/fileinput.min.css' %}" rel="stylesheet">
+<style>
+.ck-editor__editable {
+    min-height: 200px;
+}
+</style>
+{% endblock %}
+{% block breadcrumb %}
+  <li class="breadcrumb-item active"><h2>Metadata for {% if resource.name %} {{resource.name}} Community{% endif %} {% if resource.title %} {{resource.title}} {% endif %}</h2></li>
+{% endblock %}
+
+{% block content %}
+
+
+
+{% if user.is_authenticated %}
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+              <p{% if forloop.last %} class="mb-0"{% endif %}>{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% for field in form %}
+          <div class="form-group">
+            {{ field.label_tag }}
+
+            {% if form.is_bound %}
+              {% if field.errors %}
+                {% render_field field class="form-control is-invalid" %}
+                {% for error in field.errors %}
+                  <div class="invalid-feedback">
+                    {{ error }}
+                  </div>
+                {% endfor %}
+              {% else %}
+                {% render_field field class="form-control is-valid" %}
+              {% endif %}
+            {% else %}
+              {% render_field field class="form-control" %}
+            {% endif %}
+
+            {% if field.help_text %}
+              <small class="form-text text-muted">
+                {{ field.help_text|safe }}
+              </small>
+            {% endif %}
+          </div>
+        {% endfor %}
+        
+        <div class="form-group">
+                <button type="submit"  class="btn btn-outline-info"  name="submit" value='submit' id="submit">Create</button>
+            </div>
+  </form>
+{% endif %}
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'js/ckeditor/ckeditor.js'  %}"></script>
+<script>
+  ClassicEditor
+    .create( document.querySelector( '#id_description' ) )
+    .then( id_description => {
+      console.log( id_description );
+    } )
+    .catch( error => {
+      console.error( error );
+    } );
+</script>
+<script src="{% static 'js/jquery-3.2.1.min.js'  %}"></script>
+<script src="{% static 'js/bootstrap_fileinput/piexif.min.js' %}"></script>
+<script src="{% static 'js/bootstrap_fileinput/purify.min.js' %}"></script>
+<script src="{% static 'js/bootstrap_fileinput/sortable.min.js' %}"></script>
+<script src="{% static 'js/bootstrap_fileinput/fileinput.min.js' %}"></script>
+{% endblock %}

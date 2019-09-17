@@ -14,12 +14,7 @@
     }
 </style>
 {% endblock %} {% load mptt_tags %} {% block breadcrumb %}
-{% if belongsto == 'community' %}
 <li class="breadcrumb-item active"><a href="{% url 'community_view' commgrp.pk %}"> {{commgrp}} </a></li>
-{% endif %}
-{% if belongsto == 'group' %}
-<li class="breadcrumb-item active"><a href="{% url 'group_view' commgrp.pk %}"> {{commgrp}} </a></li>
-{% endif %}
 <li class="breadcrumb-item active">{{ media.title }} </li>
 {% endblock %} {% block content %}
 
@@ -35,9 +30,12 @@
                     <a class="nav-link " href="{% url 'media_edit' media.pk %}">Edit</a>
                 </li>
                 {% endif %}
+                <li class="nav-item">
+                    <a href="{% url 'media_reports' media.pk %}" id="media_reports_id" class="nav-link">Reports</a>
+                </li>
             </ul>
         </div>
-        <br/>
+        <br />
         <div class="col-sm-12">
             {% if user.is_authenticated %}
             <form method="post" enctype="multipart/form-data">
@@ -48,14 +46,16 @@
 
                         <div class="form-group">
                             <label for="title">Title</label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{media.title}}" required>
+                            <input type="text" class="form-control" id="name" name="name" value="{{media.title}}"
+                                required>
                             <div class="invalid-feedback"></div>
                         </div>
 
                         <div class="form-group">
                             <label for="description">Description</label>
-                            <textarea class="form-control" id="description" name="description" rows="10" cols="50" required>
-{{mediametadata.metadata.description}}
+                            <textarea class="form-control" id="description" name="description" rows="10" cols="50"
+                                required>
+{{media.metadata.description}}
                             </textarea>
                         </div>
 
@@ -70,22 +70,45 @@
                     </div> <!-- end of 5 columns meta data-->
 
                     <div class="col-sm-7">
-                        {% if media.mediatype == 'Image' %}
-                        <img src="{{ MEDIA_URL }}{{ media.mediafile}}" alt="image" class="img-responsive" width=350> <br />
-                        <div class="form-group custom-file">
-                            <input type="file" id="mediafile" name="mediafile" class="file" data-allowed-file-extensions='["jpeg", "jpg","png"]'
-                                data-show-upload="false" data-show-preview="true" data-msg-placeholder="Browse to update the image...">
-                        </div>
+                        {% if media.mediafile %}
+                          <input type="hidden" id="uploadOrLink" name="uploadOrLink" value="upload">
+                        {% else %}
+                          <input type="hidden" id="uploadOrLink" name="uploadOrLink" value="link">
+                        {% endif %}                    
+                        {% if media.mediatype == 'IMAGE' %}
+                          {% if media.mediafile %}
+                            <img src="{{ MEDIA_URL }}{{ media.mediafile}}" alt="image" class="img-responsive" width=350> <br />
+                            <div class="form-group custom-file">
+                                <input type="file" id="mediafile" name="mediafile" class="file" data-allowed-file-extensions='["jpeg", "jpg","png"]'
+                                    data-show-upload="false" data-show-preview="true" data-msg-placeholder="Browse to update the image...">
+                            </div>
+                          {% else %}
+                            <img src="{{ media.medialink}}" alt="image" class="img-responsive" width=350> <br />
+                            <label for="link">Link</label>
+                            <input type="text" class="form-control" id="medialink" name="medialink" value="{{media.medialink}}">
+                          {% endif %}
                         {% endif %}
-                        {% if media.mediatype == 'Audio' %}
+                        {% if media.mediatype == 'AUDIO' %}
+                          {% if media.mediafile %}
                             <iframe height="70" allowfullscreen="" style="width:100%; border:0" src="{{ MEDIA_URL }}{{ media.mediafile}}" class="margin-bottom-10"></iframe>
                             <input type="file" id="mediafile" name="mediafile" class="file" data-allowed-file-extensions='[""mp3", "wav","ogg""]'
                                 data-show-upload="false" data-show-preview="true" data-msg-placeholder="Browse to update the audio...">
+                          {% else %}
+                            <iframe style="width:100%; border:0" src="{{ media.medialink}}" class="margin-bottom-10"></iframe> <br />
+                            <label for="link">Link</label>
+                            <input type="text" class="form-control" id="medialink" name="medialink" value="{{media.medialink}}">
+                          {% endif %}
                         {% endif %}
-                        {% if media.mediatype == 'Video' %}
+                        {% if media.mediatype == 'VIDEO' %}
+                          {% if media.mediafile %}
                             <iframe height="270" allowfullscreen="" style="width:100%; border:0" src="{{ MEDIA_URL }}{{ media.mediafile}}" class="margin-bottom-10"></iframe>
                             <input type="file" id="mediafile" name="mediafile" class="file" data-allowed-file-extensions='["vob", "webm","avi","mp4","wmv"]'
                                 data-show-upload="false" data-show-preview="true" data-msg-placeholder="Browse to update the video...">
+                          {% else %}
+                            <iframe height="270" allowfullscreen="" style="width:100%; border:0" src="{{ media.medialink}}" class="margin-bottom-10"></iframe> <br />
+                            <label for="link">Link</label>
+                            <input type="text" class="form-control" id="medialink" name="medialink" value="{{media.medialink}}">
+                          {% endif %}
                         {% endif %}
                     </div> <!-- end of 7 columns media-->
                 </div> <!-- end of row -->
@@ -104,14 +127,14 @@
 {% endblock %} {% block javascript %}
 <script src="{% static 'js/ckeditor/ckeditor.js'  %}"></script>
 <script>
-  ClassicEditor
-    .create( document.querySelector( '#description' ) )
-    .then( description => {
-      console.log( description );
-    } )
-    .catch( error => {
-      console.error( error );
-    } );
+    ClassicEditor
+        .create(document.querySelector('#description'))
+        .then(description => {
+            console.log(description);
+        })
+        .catch(error => {
+            console.error(error);
+        });
 </script>
 <script src="{% static 'js/jquery-3.2.1.min.js'  %}"></script>
 <script src="{% static 'js/bootstrap_fileinput/piexif.min.js' %}"></script>

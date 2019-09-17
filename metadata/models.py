@@ -1,13 +1,13 @@
 from django.db import models
 from django.conf import settings
-from Media.models import Media
+from django_mysql.models import JSONField, Model
 
 # Create your models here.
-class Metadata(models.Model):
+class Metadata(Model):
     description = models.TextField()
-
-class MediaMetadata(models.Model):
-   	metadata = models.ForeignKey(Metadata, null=True, related_name='mediametadata')
-   	media = models.ForeignKey(Media, null=True, related_name='mediametadata')
+    attrs = JSONField()
 
 
+
+#Metadata schema
+Schema = ('Contributor', 'Coverage', 'Creator', 'Date', 'Description', 'Format', 'Identifier', 'Language', 'Publisher', 'Relation', 'Rights', 'Source', 'Subject', 'Title', 'Type')
