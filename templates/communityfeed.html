@@ -16,6 +16,10 @@
   <li class="nav-item ">
     <a class="nav-link " href="{% url 'community_view' community.pk %}">View</a>
   </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'published_content' community.pk %}">Published Content</a>
+  </li>
+
   {% if membership.role.name == 'community_admin' %}
   <li class="nav-item">
     <a class="nav-link " href="{% url 'manage_community' community.pk %}">Manage Community</a>
@@ -24,6 +28,9 @@
     <a class="nav-link" href="{% url 'update_community_info' community.pk %}">Update community Info</a>
   </li>
   {%endif%} {% if membership.role.name != '' %}
+
+
+
   <li class="nav-item">
     <a class="nav-link" href="{% url 'community_content' community.pk %}">Community Content</a>
   </li>
@@ -35,12 +42,12 @@
   <li class="nav-item">
     <a class="nav-link" href="/forum/forum/{{ community.forum_link }}">Forums</a>
   </li>
-  <li class="nav-item">
+  <!--<li class="nav-item">
     <a class="nav-link" href="{% url 'community_dashboard' community.pk %}">Insights</a>
-  </li>
-  <li class="nav-item">
+  </li>-->
+  <!--<li class="nav-item">
     <a class="nav-link" href="/wiki/{{community.name}}{{ community.pk }}">Wiki</a>
-  </li>
+  </li>-->
   {% endif %}
 </ul>
 <br />
@@ -73,7 +80,7 @@
                   <a href="{% url feed.data.actor_href feed.data.actor_href_id %}">{{feed.actor}}</a>
                   {% else %}
                   <i class="fa fa-file-text" style="color:red;"></i>
-                  <a href="{% url feed.data.actor_href feed.data.actor_href_id %}" data-toggle="tooltip" title="{{feed.actor}}">{{feed.actor|truncatewords:4}}</a>
+                  <a href="{% url feed.data.actor_href feed.data.actor_href_id %}" data-toggle="tooltip" title="{{feed.actor.title}}">{{feed.actor.title|truncatewords:4}}</a>
                   {% endif %}
                 </h4>
                 <h5>{{feed.verb}} </h5>

@@ -1,11 +1,41 @@
 {% extends 'base.html' %}
 
 {% block breadcrumb %}
-  <li class="breadcrumb-item active"><a href="{% url 'home' %}">Home</a></li>
-  <li class="breadcrumb-item active"><a href="{% url 'display_communities' %}">Communities </a></li>
   {% if user.is_authenticated %}
   <li class="breadcrumb-item active">{{ message }}</li>
   {% endif %}
+  <form class="breadcrumb-item active" id="display_community" method="post" action="{% url 'display_communities' %}">
+    <a href="{% url 'home' %}">Home</a> &nbsp;>&nbsp;
+    <a href="{% url 'categories' %}">Categories</a> &nbsp;>&nbsp; 
+    {% for comm in community.get_ancestors %}
+      <!--&nbsp;>&nbsp;-->
+      {% if comm.parent %}
+        <a href="{% url 'categorized_communities' comm.category.pk comm.parent.pk %}"> {{comm.category.name}} </a> &nbsp;>&nbsp;
+      {% else %}
+        {% csrf_token %}<input type="hidden" name="category" value="{{comm.category.pk}}">
+        <a href="#" onclick="document.getElementById('display_community').submit()">{{comm.category.name}}</a> &nbsp;>&nbsp;
+      {% endif %}
+      <a href="{% url 'community_view' comm.pk %}">{{comm.name}}</a> &nbsp;>&nbsp; 
+    {% endfor %}
+
+    {% if community %}
+      {% if community.parent %}
+        <a href="{% url 'categorized_communities' community.category.pk community.parent.pk %}"> {{community.category.name}} </a> &nbsp;>&nbsp;
+      {% else %}
+        {% csrf_token %}<input type="hidden" name="category" value="{{community.category.pk}}">
+        <a href="#" onclick="document.getElementById('display_community').submit()">{{community.category.name}} </a> &nbsp;>&nbsp;
+      {% endif %}
+    {% else %}
+      {% if category %}
+        <a href="#"> {{communities.0.category.name}} </a>
+      {% endif %}
+    {% endif %}
+    {% if community %}
+      <a href="{% url 'community_view' community.pk %}">{{community.name}}</a> &nbsp;>&nbsp;
+      <a href="{% url 'categorized_communities' category.pk community.pk %}">{{category}}</a>
+    {% endif %}
+  </form>
+
 {% endblock %}
 
 {% block content %}
@@ -16,10 +46,29 @@
     <div class="form-group">
       <label for="Sorting">Sort by</label>
       <select id="select_community" name="sortby" class="btn btn-primary" onchange="this.form.submit()">
-        <option value="a_to_z">Name: A to Z</option>
-        <option value="z_to_a">Name: Z to A</option>
-        <option value="oldest">oldest</option>
-        <option value="latest">Latest</option>
+        {% if sortby == 'a_to_z' %}
+          <option value="a_to_z" selected>Name: A to Z</option>
+        {% else %}
+          <option value="a_to_z">Name: A to Z</option>
+        {% endif %}
+
+        {% if sortby == 'z_to_a' %}
+          <option value="z_to_a" selected>Name: Z to A</option>
+        {% else %}
+          <option value="z_to_a">Name: Z to A</option>
+        {% endif %}
+
+        {% if sortby == 'oldest' %}
+          <option value="oldest" selected>Oldest</option>
+        {% else %}
+          <option value="oldest">Oldest</option>
+        {% endif %}
+
+        {% if sortby == 'latest' %}
+          <option value="latest" selected>Latest</option>
+        {% else %}
+          <option value="latest">Latest</option>
+        {% endif %}
       </select>
 
     </div>
@@ -39,7 +88,7 @@
               {% if community.image_thumbnail %}
               <img src="{{ MEDIA_URL }}{{ community.image_thumbnail}}" alt="image" class="img-responsive" style="height: 280px; width: 280px;">
               {% else %}
-              <img src="{{ MEDIA_URL }}default/community_image_default.png" alt="default" class="img-responsive" style="height: 280px; width: 280px;">
+              <img src="{{ MEDIA_URL }}default/community_image_thumbnail_default.jpg" alt="default" class="img-responsive" style="height: 280px; width: 280px;">
               {%endif%}
 
               <div class="mix-details">
@@ -55,7 +104,7 @@
                   <i class="fa fa-search"></i>View Image
                 </a>
                 {% else %}
-                <a data-rel="fancybox-button" title="{{community.name}}" href="{{ MEDIA_URL }}default/community_image_default.png" class="mix-preview fancybox-button">
+                <a data-rel="fancybox-button" title="{{community.name}}" href="{{ MEDIA_URL }}default/community_image_default.jpg" class="mix-preview fancybox-button">
                   <i class="fa fa-search"></i>View Image
                 </a>
                 {% endif %}

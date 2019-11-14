@@ -55,6 +55,7 @@ urlpatterns = [
     url(r'^login/$', auth_views.LoginView.as_view(template_name='login.html', redirect_authenticated_user=True), name='login'),
     url(r'^logout/$', auth_views.LogoutView.as_view(), name='logout'),
     url(r'^signup/$', user_views.signup, name ='signup' ),
+    url(r'^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',user_views.activate_user, name='activate'),
     url(r'^', include(router.urls)),
     url(r'^api/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/auth/$', user_viewsets.MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -117,6 +118,7 @@ urlpatterns = [
     url(r'^create_community/$', communityview.CreateCommunityView.as_view(), name='create_community'),
 
     url(r'^community_content/(?P<pk>\d+)/$', communityview.community_content, name='community_content'),
+    url(r'^published_content/(?P<pk>\d+)/$', communityview.published_content, name='published_content'),
     url(r'^community_feed/(?P<pk>\d+)/$', communityview.feed_content, name='community_feed'),
 
     url(r'^reset/$',
@@ -204,6 +206,7 @@ urlpatterns = [
     url(r'^workflow/transition/create$', workflowview.createTransitions, name='create_transition'),
 
     url(r'api/search/', include('search.api.urls', namespace = 'api-search')),
+   url(r'i18n/', include('django.conf.urls.i18n')),
 ]
 
 from wiki.urls import get_pattern as get_wiki_pattern
@@ -218,4 +221,3 @@ urlpatterns += [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

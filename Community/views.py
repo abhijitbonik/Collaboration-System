@@ -8,7 +8,7 @@ from rest_framework import viewsets
 from UserRolesPermission.views import user_dashboard
 from django.contrib.auth.models import Group as Roles
 from rolepermissions.roles import assign_role
-from UserRolesPermission.roles import CommunityAdmin
+from UserRolesPermission.permission import SuperAdminMixin
 from django.contrib.auth.models import User
 from workflow.models import States
 from django.db.models import Q
@@ -41,6 +41,8 @@ from django.db.models import Count
 from django.db.models import F
 
 def display_communities(request):
+	category=None
+	sortby=None
 	if request.method == 'POST':
 		if 'sortby' in request.POST:
 			sortby = request.POST['sortby']
@@ -58,7 +60,7 @@ def display_communities(request):
 			communities=Community.objects.filter(category=category)
 	else:
 		communities=Community.objects.filter(parent=None).order_by('name')
-	return render(request, 'communities.html',{'communities':communities})
+	return render(request, 'communities.html',{'communities':communities, 'category':category, 'sortby':sortby})
 
 def community_view(request, pk):
 	try:
@@ -86,7 +88,7 @@ def community_view(request, pk):
 		except ProfileImage.DoesNotExist:
 			top['photo'] = ''
 
-	communitymem=CommunityMembership.objects.filter(community = pk).order_by('?')[:10]
+	communitymem=CommunityMembership.objects.filter(community = pk).order_by('?')
 	for comm in communitymem:
 		try:
 			user_profile = ProfileImage.objects.get(user=comm.user)
@@ -95,7 +97,7 @@ def community_view(request, pk):
 			user_profile = "No Image available"
 	children = community.get_children()
 	childrencount = children.count()
-	return render(request, 'communityview.html', {'community': community, 'membership':membership, 'subscribers':subscribers, 'top_contributors':top_contributors, 'pubarticlescount':pubarticlescount, 'message':message, 'pubarticles':pubarticles, 'communitymem':communitymem, 'children':children, 'childrencount':childrencount})
+	return render(request, 'communityview.html', {'community': community, 'membership':membership, 'subscribers':subscribers, 'top_contributors':top_contributors, 'pubarticlescount':pubarticlescount, 'message':message, 'communitymem':communitymem, 'children':children, 'childrencount':childrencount})
 
 def community_subscribe(request):
 	cid = request.POST['cid']
@@ -209,16 +211,23 @@ def handle_community_creation_requests(request):
 
 					)
 
-				#create the ether id for community
-				create_community_ether(communitycreation)
-
-				create_wiki_for_community(communitycreation)
 				communityadmin = Roles.objects.get(name='community_admin')
 				communitymembership = CommunityMembership.objects.create(
 					user = rcommunity.requestedby,
 					community = communitycreation,
 					role = communityadmin
 					)
+
+				try:
+					create_community_ether(communitycreation)
+				except Exception as e:
+					messages.warning(request, 'Cannot create ether id for this Community. Please check whether Etherpad service is running.')
+
+				try:
+					create_wiki_for_community(communitycreation)
+				except Exception as e:
+					messages.warning(request, 'Cannot create wiki for this Community. Please check default wiki is created.')
+
 				remove_or_add_user_feed(rcommunity.requestedby,communitycreation,'community_created')
 				rcommunity.status = 'approved'
 				rcommunity.save()
@@ -340,7 +349,7 @@ class UpdateCommunityView(UpdateView):
 		self.object = form.save(commit=False)
 		self.object.image_thumbnail = form.cleaned_data.get('image')
 		self.object.save()
-		
+
 		if form.cleaned_data.get('x'):
 			x = form.cleaned_data.get('x')
 			y = form.cleaned_data.get('y')
@@ -369,18 +378,12 @@ class UpdateCommunityView(UpdateView):
 		return url
 
 
-class CreateCommunityView(CreateView):
+class CreateCommunityView(SuperAdminMixin, CreateView):
 	form_class = CommunityCreateForm
 	model = Community
 	template_name = 'create_community.html'
 	#community_admin = Roles.objects.get(name='community_admin')
 	success_url = 'community_view'
-
-	def get(self, request, *args, **kwargs):
-		if request.user.is_superuser:
-			self.object = None
-			return super(CreateCommunityView, self).get(request, *args, **kwargs)
-		return redirect('home')
 
 	def form_valid(self, form):
 		"""
@@ -487,7 +490,7 @@ class CreateSubCommunityView(CreateView):
 			if self.is_community_admin():
 				self.object = None
 				return super(CreateSubCommunityView, self).get(request, *args, **kwargs)
-			messages.warning(self.request, 'You are not a member of this community.')
+			messages.warning(self.request, 'Sorry, only a community admin can add more groups/sub-communities')
 			return redirect(self.success_url, self.kwargs['pk'])
 		return redirect('home')
 
@@ -605,6 +608,56 @@ def community_content(request, pk):
 		return redirect('community_view', community.pk)
 	return render(request, 'communitycontent.html', {'community': community, 'membership':membership, 'commarticles':commarticles})
 
+def published_content(request, pk):
+	commarticles = ''
+#	try:
+	community = Community.objects.get(pk=pk)
+	try:
+		uid = request.user.id
+		membership = CommunityMembership.objects.get(user=request.user.id, community=community.pk)
+	except CommunityMembership.DoesNotExist:
+		membership = 'FALSE'
+
+	carticles = CommunityArticles.objects.filter(community=community, article__state__initial=False, article__state__final=True).annotate(title=F('article__title'),state=F('article__state__name'),created_at=F('article__created_at'),body=F('article__body'),image=F('article__image'),views=F('article__views'),username=F('article__created_by__username'))
+	for art in carticles:
+		art.type = 'article'
+
+	ccourse = CommunityCourses.objects.filter(community=community, course__state__initial=False, course__state__final=True).annotate(title=F('course__title'),state=F('course__state__name'),created_at=F('course__created_at'),body=F('course__body'),image=F('course__image'),username=F('course__created_by__username'))
+	for course in ccourse:
+		course.type = 'course'
+
+	cmedia = CommunityMedia.objects.filter(community=community, media__state__initial=False, media__state__final=True).annotate(title=F('media__title'),state=F('media__state__name'),created_at=F('media__created_at'),mediatype=F('media__mediatype'),image=F('media__mediafile'),username=F('media__created_by__username'))
+	for media in cmedia:
+		media.type = 'media'
+
+	ch5p = []
+	print('new test')
+	try:
+		response = requests.get(settings.H5P_ROOT + 'h5p/h5papi/?format=json')
+		json_data = json.loads(response.text)
+		print(json_data)
+
+		for obj in json_data:
+			if obj['community_id'] == community.pk:
+				obj['type'] = 'h5p'
+				ch5p.append(obj)
+	except Exception as e:
+		print(e)
+		print("H5P server down...Sorry!! We will be back soon")
+	lstfinal = list(carticles) +  list(cmedia) + list(ccourse) + list(ch5p)
+
+	page = request.GET.get('page', 1)
+	paginator = Paginator(list(lstfinal), 5)
+	try:
+		commarticles = paginator.page(page)
+	except PageNotAnInteger:
+		commarticles = paginator.page(1)
+	except EmptyPage:
+		commarticles = paginator.page(paginator.num_pages)
+
+#	except CommunityMembership.DoesNotExist:
+#		membership = 'FALSE'
+	return render(request, 'publishedcontent.html', {'community': community, 'membership':membership, 'commarticles':commarticles})
 
 def h5p_view(request, pk):
 	try:
@@ -755,6 +808,3 @@ def community_media_create(request):
 			return redirect('home')
 	else:
 		return redirect('login')
-
-
-

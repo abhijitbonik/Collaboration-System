@@ -120,6 +120,26 @@ $(document).ready(function() {
                     <li><a href="{% url 'login' %}?next={{request.path}}">Log In</a></li>
                     <li><a href="{% url 'signup' %}">Sign up</a></li>
                     {% endif %}
+                    <li>
+                            <form action="{% url 'set_language' %}" method="post">{% csrf_token %}
+                              <div class="input-group">
+                              <input class="form-control" name="next" type="hidden" value="{{ redirect_to }}">
+                              </div>
+                              <div class="col-md-12 col-sm-12 ">
+                              <select class="form-control" name="language" onchange="this.form.submit()">
+                                  {% get_current_language as LANGUAGE_CODE %}
+                                  {% get_available_languages as LANGUAGES %}
+                                  {% get_language_info_list for LANGUAGES as languages %}
+                                  {% for language in languages %}
+                                      <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected{% endif %}>
+                                          {{ language.name_local }}
+                                      </option>
+                                  {% endfor %}
+                              </select>
+                          </div>
+                          </form>
+                  
+                    </li>
                 </ul>
             </div>
             <!-- END TOP BAR MENU -->
@@ -148,7 +168,7 @@ $(document).ready(function() {
         </a>
         <ul class="dropdown-menu" id="">
           <li><a href="{% url 'display_articles' %}">Articles</a></li>
-          <li><a href="{% url 'display_courses' %}">Courses</a></li>
+          <!--<li><a href="{% url 'display_courses' %}">Courses</a></li>-->
           <li><a href="{% url 'display_published_media' 'Image' %}">Images</a></li>
           <li><a href="{% url 'display_published_media' 'Audio' %}">Audio</a></li>
           <li><a href="{% url 'display_published_media' 'Video' %}">Video</a></li>

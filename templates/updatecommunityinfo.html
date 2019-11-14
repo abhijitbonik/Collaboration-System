@@ -23,6 +23,12 @@
   <li class="nav-item">
     <a class="nav-link " href="{% url 'community_view' community.pk %}">View</a>
   </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'published_content' community.pk %}">Published Content</a>
+  </li>
+
+
+
   {% if membership.role.name == 'community_admin' %}
   <li class="nav-item">
     <a class="nav-link " href="{% url 'manage_community' community.pk %}">Manage community</a>
@@ -30,8 +36,12 @@
   <li class="nav-item active">
     <a class="nav-link " href="#">Update community Info</a>
   </li>
+
+
   {% endif %}
   {% if membership %}
+
+
   <li class="nav-item">
     <a class="nav-link" href="{% url 'community_content' community.pk %}">Community Content</a>
   </li>
@@ -43,17 +53,19 @@
   <li class="nav-item">
 	<a class="nav-link" href="/forum/forum/{{ community.forum_link }}">Forums</a>
   </li>
-<li class="nav-item ">
+  <!--<li class="nav-item ">
     <a class="nav-link" href="{% url 'community_dashboard' community.pk %}">Insights</a>
-  </li>
-  <li class="nav-item">
+  </li>-->
+  <!--<li class="nav-item">
     <a class="nav-link" href="/wiki/{{community.name}}{{ community.pk }}">Wiki</a>
-  </li>
+  </li>-->
   {% endif %}
 
 </ul>
 <br/>
-
+<h2>In {% for language in languages %} 
+                  {% if language.code == LANGUAGE_CODE %} {{ language.name_local }}{% endif %}
+            {% endfor %}</h2>
 <div class="container-fluid alert alert-primary" role="alert">
   <div class="row">
     <div class="col-sm-12">
@@ -81,7 +93,7 @@
                 {% if community.image %}
                 <img src="{{ MEDIA_URL }}{{ community.image}}" alt="image" class="img-responsive" width=150>
                 {% else %}
-                <img src="{{ MEDIA_URL }}default/community_image_default.png" alt="default" class="img-responsive" width=150>
+                <img src="{{ MEDIA_URL }}default/community_image_default.jpg" alt="default" class="img-responsive" width=150>
                 {%endif%}<br />
                   <div class="form-group custom-file">
                     <label for="image">Image</label>
@@ -90,6 +102,9 @@
                       {{form.y}}
                       {{form.width}}
                       {{form.height}}
+                      <div class="invalid-feedback">
+                      {{ form.image.errors }}
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="title">Category</label>
@@ -109,7 +124,7 @@
                 <div class="form-group">
                 <button type="submit"  class="btn btn-outline-info"  name="submit" value='submit' id="submit">Submit</button>
               </div>
-              
+
           </form>
 
            <!-- MODAL TO CROP THE IMAGE -->
@@ -210,7 +225,6 @@
       });
     });
 </script>
-<script src="{% static 'js/jquery-3.2.1.min.js'  %}"></script>
 <script src="{% static 'js/bootstrap_fileinput/piexif.min.js' %}"></script>
 <script src="{% static 'js/bootstrap_fileinput/purify.min.js' %}"></script>
 <script src="{% static 'js/bootstrap_fileinput/sortable.min.js' %}"></script>

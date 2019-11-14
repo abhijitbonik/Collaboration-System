@@ -30,6 +30,9 @@
     {% endfor %}
 
 {% endif %}
+<h2>In {% for language in languages %} 
+                  {% if language.code == LANGUAGE_CODE %} {{ language.name_local }}{% endif %}
+            {% endfor %}</h2>
 <br/>
    <form method="post" enctype="multipart/form-data" novalidate>
                       {% csrf_token %}
@@ -194,7 +197,7 @@
       });
     });
 </script>
-<script src="{% static 'js/jquery-3.2.1.min.js'  %}"></script>
+
 <script src="{% static 'js/bootstrap_fileinput/piexif.min.js' %}"></script>
 <script src="{% static 'js/bootstrap_fileinput/purify.min.js' %}"></script>
 <script src="{% static 'js/bootstrap_fileinput/sortable.min.js' %}"></script>
